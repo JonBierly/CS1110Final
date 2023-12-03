@@ -52,7 +52,12 @@ def home_menu():
     global DEAD_MENU
     global player1_alive
     global player2_alive
-
+    global player1_health
+    global player2_health
+    if HOME_MENU:
+        DEAD_MENU = False
+        player1_health = 5
+        player2_health = 5
     if HOME_MENU:
         screen = uvage.from_text(400, 100, "Welcome to GunFight!", 100, 'red')
         map_choose = uvage.from_text(400, 150, 'Click the number under a map to choose it!', 40, 'blue')
@@ -68,11 +73,15 @@ def home_menu():
             HOME_MENU = False
             player1_alive = True
             player2_alive = True
+            player1.x, player1.y = 100, 370
+            player2.x, player2.y = 700, 370
         if uvage.is_pressing('2'):
             HOME_MENU = False
             MAP2_TRUE = True
             player1_alive = True
             player2_alive = True
+            player1.x, player1.y = 200, 100
+            player2.x, player2.y = 600, 100
         if uvage.is_pressing('3'):
             HOME_MENU = False
             MAP3_TRUE = True
@@ -91,14 +100,21 @@ def home_menu():
 def dead_menu():
     global DEAD_MENU
     global HOME_MENU
-    if DEAD_MENU:
+    global player1_alive
+    global player2_alive
+    if DEAD_MENU == True:
+        HOME_MENU = False
+    if DEAD_MENU == True:
         died_text = uvage.from_text(400, 100, "YOU DIED!", 100, 'red')
-        restart_text = uvage.from_text(400, 200, "Press SPACE to return to the home menu", 50, 'red')
+        restart_text = uvage.from_text(400, 200, "Press T to return to the home menu", 50, 'red')
         camera.draw(died_text)
         camera.draw(restart_text)
-        if uvage.is_pressing('space'):
+        if uvage.is_pressing('t'):
             HOME_MENU = True
             DEAD_MENU = False
+            player1_alive = False
+            player2_alive = False
+
 
 
 def map_1_environment():
@@ -119,9 +135,41 @@ def map_1_environment():
             camera.draw(x)
         camera.draw(uvage.from_text(400,100, 'MAP ONE', 50, 'green'))
 
-"""
+moving_platform = uvage.from_color(0,570, 'brown', 100, 20)
 def map_2_environment():
+    global environment
+    global background
+    global moving_platform
+    if MAP2_TRUE:
+        background = uvage.from_image(400, 300, 'Space Image.jpeg')
+        background.scale_by(0.5)
+        if moving_platform.x == 0:
+            moving_platform.speedx = 8
+        if moving_platform.x == 800:
+            moving_platform.speedx = -8
+        moving_platform.move_speed()
+        environment = [uvage.from_color(200, 100, 'green', 75, 20),
+                       uvage.from_color(200, 200, 'green', 75, 20),
+                       uvage.from_color(200, 300, 'green', 75, 20),
+                       uvage.from_color(200, 400, 'green', 75, 20),
+                       uvage.from_color(200, 500, 'green', 75, 20),
+                       uvage.from_color(400, 100, 'yellow', 75, 20),
+                       uvage.from_color(400, 200, 'yellow', 75, 20),
+                       uvage.from_color(400, 300, 'yellow', 75, 20),
+                       uvage.from_color(400, 400, 'yellow', 75, 20),
+                       uvage.from_color(400, 500, 'yellow', 75, 20),
+                       uvage.from_color(600, 100, 'blue', 75, 20),
+                       uvage.from_color(600, 200, 'blue', 75, 20),
+                       uvage.from_color(600, 300, 'blue', 75, 20),
+                       uvage.from_color(600, 400, 'blue', 75, 20),
+                       uvage.from_color(600, 500, 'blue', 75, 20),
+                       moving_platform]
+        camera.draw(background)
+        for x in environment:
+            camera.draw(x)
+        camera.draw(uvage.from_text(400, 50, 'MAP TWO', 50, 'green'))
 
+"""
 def map_3_environment():
 """
 
@@ -246,9 +294,11 @@ def move_player2():
 
 # GUN DEFAULTS
 player1_bulletlist =[]
-bullet = uvage.from_color
 player1_shoot = True
 player1_timer = 0
+player2_bulletlist =[]
+player2_shoot = True
+player2_timer = 0
 def make_bullet(player, player_right):
     bullet = uvage.from_color(player.x, player.y - 10, "yellow", 10, 4)
     if player_right == True:
@@ -272,7 +322,7 @@ def gun_player1():
         if player1_shoot == True:
             if uvage.is_pressing('space'):
                 player1_bulletlist.append(make_bullet(player1, player1_right))
-                player1_timer = 7
+                player1_timer = 10
         for bullet in player1_bulletlist:
             if (bullet.x > 810) or (bullet.x < -10):
                 player1_bulletlist.remove(bullet)
@@ -280,16 +330,95 @@ def gun_player1():
             camera.draw(bullet)
     player1_timer -= 1
 
+def gun_player2():
+    global player2_bulletlist
+    global player2_right
+    global player2_alive
+    global player2_shoot
+    global player2_timer
+    if player2_alive == True:
+        if player2_timer <=0:
+            player2_shoot = True
+        else:
+            player2_shoot = False
 
+
+        if player2_shoot == True:
+            if uvage.is_pressing('right shift'):
+                player2_bulletlist.append(make_bullet(player2, player2_right))
+                player2_timer = 10
+        for bullet in player2_bulletlist:
+            if (bullet.x > 810) or (bullet.x < -10):
+                player2_bulletlist.remove(bullet)
+            bullet.move_speed()
+            camera.draw(bullet)
+    player2_timer -= 1
+
+player1_health = 5
+player2_health = 5
+def health_player1():
+    global player1_health
+    global player1_alive
+    global player2_bulletlist
+    global DEAD_MENU
+    global MAP1_TRUE
+    global MAP2_TRUE
+    global MAP3_TRUE
+    player1_health_background = uvage.from_color(50, 40, "black", 100 ,50)
+    player1_healthbar = uvage.from_color(50, 40, "red", player1_health *16,30)
+    for bullet in player2_bulletlist:
+        if player1.touches(bullet):
+            player2_bulletlist.remove(bullet)
+            player1_health -= 1
+    if player1.y > 610:
+        player1_health -= 1
+    if player2_alive == True:
+        camera.draw(player1_health_background)
+        camera.draw(player1_healthbar)
+    if player1_health == 0:
+        player1_alive = False
+        DEAD_MENU = True
+        MAP1_TRUE = False
+        MAP2_TRUE = False
+        MAP3_TRUE = False
+
+def health_player2():
+    global player2_health
+    global player2_alive
+    global player1_bulletlist
+    global DEAD_MENU
+    global MAP1_TRUE
+    global MAP2_TRUE
+    global MAP3_TRUE
+    player2_healthbar = uvage.from_color(750, 40, "red", player2_health *16,30)
+    player2_health_background = uvage.from_color(750, 40, "black", 100, 50)
+    for bullet in player1_bulletlist:
+        if player2.touches(bullet):
+            player1_bulletlist.remove(bullet)
+            player2_health -= 1
+    if player2.y > 610:
+        player2_health -= 1
+    if player1_alive == True:
+        camera.draw(player2_health_background)
+        camera.draw(player2_healthbar)
+    if player2_health == 0:
+        player2_alive = False
+        DEAD_MENU = True
+        MAP1_TRUE = False
+        MAP2_TRUE = False
+        MAP3_TRUE = False
 def tick():
     camera.clear("black")
     home_menu()
     dead_menu()
     map_1_environment()
+    map_2_environment()
     move_player1()
     move_player2()
     gun_player1()
-
+    gun_player2()
+    health_player1()
+    health_player2()
     camera.display()
 
 uvage.timer_loop(30, tick)
