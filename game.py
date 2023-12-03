@@ -87,6 +87,8 @@ def home_menu():
             MAP3_TRUE = True
             player1_alive = True
             player2_alive = True
+            player1.x, player1.y = 200, 100
+            player2.x, player2.y = 600, 100
 
         camera.draw(map_3_option_1)
         camera.draw(map_3_option_2)
@@ -169,9 +171,38 @@ def map_2_environment():
             camera.draw(x)
         camera.draw(uvage.from_text(400, 50, 'MAP TWO', 50, 'green'))
 
-"""
+
 def map_3_environment():
-"""
+    global environment
+    global background
+    global moving_platform
+    if MAP3_TRUE:
+        background = uvage.from_image(400, 300, 'Tilted_season_8.jpeg')
+        background.scale_by(0.5)
+
+        if moving_platform.x == 0:
+            moving_platform.speedx = 8
+        if moving_platform.x == 800:
+            moving_platform.speedx = -8
+        moving_platform.move_speed()
+
+
+
+        environment = [uvage.from_color(100, 100, 'green', 200, 20),
+                       uvage.from_color(700, 100, 'green', 200, 20),
+                       uvage.from_color(550, 200, 'yellow', 75, 20),
+                       uvage.from_color(250, 200, 'yellow', 75, 20),
+                       uvage.from_color(400, 300, 'blue', 200, 20),
+                       uvage.from_color(550, 400, 'yellow', 75, 20),
+                       uvage.from_color(250, 400, 'yellow', 75, 20),
+                       uvage.from_color(100, 500, 'green', 200, 20),
+                       uvage.from_color(700, 500, 'green', 200, 20)
+                       ]
+        camera.draw(background)
+        for x in environment:
+            camera.draw(x)
+        camera.draw(uvage.from_text(400, 50, 'MAP TWO', 50, 'green'))
+
 
 # PLAYER DEFAULTS
 player1_images = uvage.load_sprite_sheet("pixel_character_pale_yellow.png", 8, 8)
@@ -312,6 +343,7 @@ def gun_player1():
     global player1_alive
     global player1_shoot
     global player1_timer
+    global environment
     if player1_alive == True:
         if player1_timer <=0:
             player1_shoot = True
@@ -326,6 +358,9 @@ def gun_player1():
         for bullet in player1_bulletlist:
             if (bullet.x > 810) or (bullet.x < -10):
                 player1_bulletlist.remove(bullet)
+            for x in environment:
+                if bullet.touches(x):
+                    player1_bulletlist.remove(bullet)
             bullet.move_speed()
             camera.draw(bullet)
     player1_timer -= 1
@@ -336,6 +371,7 @@ def gun_player2():
     global player2_alive
     global player2_shoot
     global player2_timer
+    global environment
     if player2_alive == True:
         if player2_timer <=0:
             player2_shoot = True
@@ -344,12 +380,15 @@ def gun_player2():
 
 
         if player2_shoot == True:
-            if uvage.is_pressing('right shift'):
+            if uvage.is_pressing('m'):
                 player2_bulletlist.append(make_bullet(player2, player2_right))
                 player2_timer = 10
         for bullet in player2_bulletlist:
             if (bullet.x > 810) or (bullet.x < -10):
                 player2_bulletlist.remove(bullet)
+            for x in environment:
+                if bullet.touches(x):
+                    player2_bulletlist.remove(bullet)
             bullet.move_speed()
             camera.draw(bullet)
     player2_timer -= 1
@@ -413,6 +452,7 @@ def tick():
     dead_menu()
     map_1_environment()
     map_2_environment()
+    map_3_environment()
     move_player1()
     move_player2()
     gun_player1()
